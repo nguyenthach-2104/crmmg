@@ -1,0 +1,450 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>CRM Bán Xe Ô Tô - Quản lý khách hàng</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css" rel="stylesheet">
+  <script src="https://apis.google.com/js/api.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+</head>
+<body>
+  <div class="container mt-3">
+    <h1 class="text-center">Quản lý khách hàng</h1>
+    <button class="btn btn-secondary mb-3" onclick="window.location.href='dashboard.html'">Quay lại Dashboard</button>
+
+    <!-- Form thêm khách hàng -->
+    <h3>Thêm khách hàng mới</h3>
+    <form id="customerForm">
+      <div class="row">
+        <div class="col-md-4 mb-3">
+          <label for="employeeName" class="form-label">Tên nhân viên</label>
+          <input type="text" class="form-control" id="employeeName" required>
+        </div>
+        <div class="col-md-4 mb-3">
+          <label for="customerName" class="form-label">Tên khách hàng</label>
+          <input type="text" class="form-control" id="customerName" required>
+        </div>
+        <div class="col-md-4 mb-3">
+          <label for="phone" class="form-label">Số điện thoại</label>
+          <input type="text" class="form-control" id="phone" required>
+        </div>
+        <div class="col-md-4 mb-3">
+          <label for="province" class="form-label">Tỉnh</label>
+          <select class="form-select" id="province" required>
+            <option value="">Chọn tỉnh</option>
+            <!-- Được điền động từ sheet Data -->
+          </select>
+        </div>
+        <div class="col-md-4 mb-3">
+          <label for="district" class="form-label">Huyện</label>
+          <input type="text" class="form-control" id="district">
+        </div>
+        <div class="col-md-4 mb-3">
+          <label for="city" class="form-label">TP</label>
+          <input type="text" class="form-control" id="city">
+        </div>
+        <div class="col-md-4 mb-3">
+          <label for="carType" class="form-label">Loại xe</label>
+          <select class="form-select" id="carType">
+            <option value="">Chọn loại xe</option>
+            <!-- Được điền động từ sheet Data -->
+          </select>
+        </div>
+        <div class="col-md-4 mb-3">
+          <label for="version" class="form-label">Phiên bản</label>
+          <select class="form-select" id="version">
+            <option value="">Chọn phiên bản</option>
+            <!-- Được điền động từ sheet Data -->
+          </select>
+        </div>
+        <div class="col-md-4 mb-3">
+          <label for="color" class="form-label">Màu</label>
+          <select class="form-select" id="color">
+            <option value="">Chọn màu</option>
+            <!-- Được điền động từ sheet Data -->
+          </select>
+        </div>
+        <div class="col-md-4 mb-3">
+          <label for="channel" class="form-label">Kênh</label>
+          <select class="form-select" id="channel">
+            <option value="">Chọn kênh</option>
+            <!-- Được điền động từ sheet Data -->
+          </select>
+        </div>
+        <div class="col-md-4 mb-3">
+          <label for="source" class="form-label">Nguồn</label>
+          <select class="form-select" id="source">
+            <option value="">Chọn nguồn</option>
+            <!-- Được điền động từ sheet Data -->
+          </select>
+        </div>
+        <div class="col-md-4 mb-3">
+          <label for="customerType" class="form-label">Phân loại KH</label>
+          <select class="form-select" id="customerType">
+            <option value="">Chọn phân loại</option>
+            <!-- Được điền động từ sheet Data -->
+          </select>
+        </div>
+        <div class="col-md-4 mb-3">
+          <label for="testDrive" class="form-label">Lái thử</label>
+          <select class="form-select" id="testDrive">
+            <option value="">Chọn trạng thái</option>
+            <!-- Được điền động từ sheet Data -->
+          </select>
+        </div>
+        <div class="col-md-4 mb-3">
+          <label for="signDate" class="form-label">Tháng Ký</label>
+          <input type="text" class="form-control" id="signDate">
+        </div>
+        <div class="col-md-4 mb-3">
+          <label for="invoiceDate" class="form-label">Tháng XHD</label>
+          <input type="text" class="form-control" id="invoiceDate">
+        </div>
+        <div class="col-md-4 mb-3">
+          <label for="agencyDrop" class="form-label">Rớt đại lý</label>
+          <input type="text" class="form-control" id="agencyDrop">
+        </div>
+        <div class="col-md-4 mb-3">
+          <label for="otherBrandDrop" class="form-label">Rớt hãng khác</label>
+          <input type="text" class="form-control" id="otherBrandDrop">
+        </div>
+        <div class="col-md-4 mb-3">
+          <label for="note" class="form-label">Ghi chú</label>
+          <input type="text" class="form-control" id="note">
+        </div>
+      </div>
+      <button type="button" class="btn btn-primary" onclick="addCustomer()">Thêm khách hàng</button>
+    </form>
+
+    <!-- Bảng danh sách khách hàng -->
+    <h3 class="mt-4">Danh sách khách hàng</h3>
+    <table class="table table-bordered">
+      <thead>
+        <tr>
+          <th onclick="sortTable(0)">Dấu thời gian <span>↕</span></th>
+          <th>Tên Nhân viên</th>
+          <th>Tên Khách Hàng</th>
+          <th>Số Điện Thoại</th>
+          <th>Tỉnh</th>
+          <th>Huyện</th>
+          <th>TP</th>
+          <th>Loại Xe</th>
+          <th>Phiên Bản</th>
+          <th>Màu</th>
+          <th>Kênh</th>
+          <th>Nguồn</th>
+          <th>Phân Loại KH</th>
+          <th>Lái Thử</th>
+          <th onclick="sortTable(14)">Tháng Ký <span>↕</span></th>
+          <th onclick="sortTable(15)">Tháng XHD <span>↕</span></th>
+          <th>Rớt Đại Lý</th>
+          <th>Rớt Hãng Khác</th>
+          <th>Ghi Chú</th>
+          <th>Thao tác</th>
+        </tr>
+      </thead>
+      <tbody id="customerTable">
+      </tbody>
+    </table>
+  </div>
+
+  <script>
+    let user;
+    let customersData = [];
+    let sortDirection = 1; // 1: tăng dần, -1: giảm dần
+
+    function initGapi() {
+      gapi.load('client', () => {
+        gapi.client.init({
+          apiKey: 'AIzaSyBE5nHSYaasu6RLrdE5QqnDQaD4Q1XAp9I',
+          discoveryDocs: ['https://sheets.googleapis.com/$discovery/rest?version=v4'],
+        }).then(() => {
+          loadDropdowns();
+          loadCustomers();
+        }).catch(err => {
+          console.error('Lỗi khởi tạo gapi.client:', err);
+          alert('Không thể khởi tạo API. Vui lòng thử lại sau.');
+        });
+      });
+    }
+
+    function loadDropdowns() {
+      gapi.client.sheets.spreadsheets.values.get({
+        spreadsheetId: '1C4J3KBvE-wxSFBJywbV0W5IkFaXnI-aArNazLr5napE',
+        range: 'Data!A2:I',
+      }).then(response => {
+        var data = response.result.values || [];
+        let provinces = new Set(), carTypes = new Set(), versions = new Set(), colors = new Set(),
+            channels = new Set(), sources = new Set(), customerTypes = new Set(), testDrives = new Set();
+
+        data.forEach(row => {
+          if (row[0]) sources.add(row[0]);
+          if (row[1]) channels.add(row[1]);
+          if (row[2]) provinces.add(row[2]);
+          if (row[3]) carTypes.add(row[3]);
+          if (row[4]) testDrives.add(row[4]);
+          if (row[5]) customerTypes.add(row[5]);
+          if (row[7]) versions.add(row[7]);
+          if (row[8]) colors.add(row[8]);
+        });
+
+        fillDropdown('province', provinces);
+        fillDropdown('carType', carTypes);
+        fillDropdown('version', versions);
+        fillDropdown('color', colors);
+        fillDropdown('channel', channels);
+        fillDropdown('source', sources);
+        fillDropdown('customerType', customerTypes);
+        fillDropdown('testDrive', testDrives);
+      }).catch(err => {
+        console.error('Lỗi khi tải dữ liệu dropdown:', err);
+        alert('Có lỗi xảy ra khi tải dữ liệu dropdown!');
+      });
+    }
+
+    function fillDropdown(elementId, values) {
+      var select = document.getElementById(elementId);
+      values.forEach(value => {
+        var option = document.createElement('option');
+        option.value = value;
+        option.textContent = value;
+        select.appendChild(option);
+      });
+    }
+
+    flatpickr("#signDate", {
+      dateFormat: "d/m/Y",
+      allowInput: true
+    });
+    flatpickr("#invoiceDate", {
+      dateFormat: "d/m/Y",
+      allowInput: true
+    });
+
+    function loadCustomers() {
+      user = JSON.parse(localStorage.getItem('user'));
+      if (!user) {
+        window.location.href = 'index.html';
+        return;
+      }
+
+      gapi.client.sheets.spreadsheets.values.get({
+        spreadsheetId: '1C4J3KBvE-wxSFBJywbV0W5IkFaXnI-aArNazLr5napE',
+        range: 'User!A2:G',
+      }).then(response => {
+        var users = response.result.values;
+        let sheetsToFetch = [];
+
+        if (user.role === 'Quản lý cấp 1') {
+          sheetsToFetch = users.map(u => ({
+            spreadsheetId: u[6].match(/\/d\/(.+?)\//)[1],
+            range: 'data!A2:S'
+          }));
+        } else if (user.role === 'Quản lý cấp 2') {
+          sheetsToFetch = users
+            .filter(u => u[5] === user.pkd)
+            .map(u => ({
+              spreadsheetId: u[6].match(/\/d\/(.+?)\//)[1],
+              range: 'data!A2:S'
+            }));
+        } else {
+          sheetsToFetch = [{
+            spreadsheetId: users.find(u => u[2] === user.username)[6].match(/\/d\/(.+?)\//)[1],
+            range: 'data!A2:S'
+          }];
+        }
+
+        customersData = [];
+        Promise.all(sheetsToFetch.map(sheet => 
+          gapi.client.sheets.spreadsheets.values.get({
+            spreadsheetId: sheet.spreadsheetId,
+            range: sheet.range
+          }).catch(() => ({ result: { values: [] } }))
+        )).then(responses => {
+          responses.forEach((response, index) => {
+            var data = response.result.values || [];
+            data.forEach(row => {
+              customersData.push({
+                spreadsheetId: sheetsToFetch[index].spreadsheetId,
+                rowData: row
+              });
+            });
+          });
+          displayCustomers();
+        });
+      }).catch(err => {
+        console.error('Lỗi khi tải danh sách khách hàng:', err);
+        alert('Có lỗi xảy ra khi tải danh sách khách hàng!');
+      });
+    }
+
+    function displayCustomers() {
+      var tbody = document.getElementById('customerTable');
+      tbody.innerHTML = '';
+      customersData.forEach((customer, index) => {
+        var row = customer.rowData;
+        var tr = document.createElement('tr');
+        tr.innerHTML = `
+          <td>${row[0] || ''}</td>
+          <td>${row[1] || ''}</td>
+          <td>${row[2] || ''}</td>
+          <td>${row[3] || ''}</td>
+          <td>${row[4] || ''}</td>
+          <td>${row[5] || ''}</td>
+          <td>${row[6] || ''}</td>
+          <td>${row[7] || ''}</td>
+          <td>${row[8] || ''}</td>
+          <td>${row[9] || ''}</td>
+          <td>${row[10] || ''}</td>
+          <td>${row[11] || ''}</td>
+          <td>${row[12] || ''}</td>
+          <td>${row[13] || ''}</td>
+          <td>${row[14] || ''}</td>
+          <td>${row[15] || ''}</td>
+          <td>${row[16] || ''}</td>
+          <td>${row[17] || ''}</td>
+          <td>${row[18] || ''}</td>
+          <td>
+            <button class="btn btn-warning btn-sm" onclick="editCustomer(${index})">Sửa</button>
+            <button class="btn btn-danger btn-sm" onclick="deleteCustomer(${index})">Xóa</button>
+          </td>
+        `;
+        tbody.appendChild(tr);
+      });
+    }
+
+    function addCustomer() {
+      var employeeName = document.getElementById('employeeName').value;
+      var customerName = document.getElementById('customerName').value;
+      var phone = document.getElementById('phone').value;
+      var province = document.getElementById('province').value;
+      var district = document.getElementById('district').value;
+      var city = document.getElementById('city').value;
+      var carType = document.getElementById('carType').value;
+      var version = document.getElementById('version').value;
+      var color = document.getElementById('color').value;
+      var channel = document.getElementById('channel').value;
+      var source = document.getElementById('source').value;
+      var customerType = document.getElementById('customerType').value;
+      var testDrive = document.getElementById('testDrive').value;
+      var signDate = document.getElementById('signDate').value;
+      var invoiceDate = document.getElementById('invoiceDate').value;
+      var agencyDrop = document.getElementById('agencyDrop').value;
+      var otherBrandDrop = document.getElementById('otherBrandDrop').value;
+      var note = document.getElementById('note').value;
+
+      var timestamp = new Date();
+      var formattedTimestamp = `${timestamp.getDate().toString().padStart(2, '0')}/${(timestamp.getMonth() + 1).toString().padStart(2, '0')}/${timestamp.getFullYear()}`;
+
+      var rowData = [
+        formattedTimestamp, employeeName, customerName, phone, province, district, city,
+        carType, version, color, channel, source, customerType, testDrive, signDate, invoiceDate,
+        agencyDrop, otherBrandDrop, note
+      ];
+
+      var spreadsheetId = customersData.find(c => c.rowData[1] === user.username)?.spreadsheetId ||
+        gapi.client.sheets.spreadsheets.values.get({
+          spreadsheetId: '1C4J3KBvE-wxSFBJywbV0W5IkFaXnI-aArNazLr5napE',
+          range: 'User!A2:G',
+        }).then(response => {
+          var users = response.result.values;
+          return users.find(u => u[2] === user.username)[6].match(/\/d\/(.+?)\//)[1];
+        });
+
+      Promise.resolve(spreadsheetId).then(spreadsheetId => {
+        gapi.client.sheets.spreadsheets.values.append({
+          spreadsheetId: spreadsheetId,
+          range: 'data!A:S',
+          valueInputOption: 'USER_ENTERED',
+          resource: {
+            values: [rowData]
+          }
+        }).then(() => {
+          loadCustomers();
+          document.getElementById('customerForm').reset();
+          alert('Thêm khách hàng thành công!');
+        }).catch(err => {
+          console.error('Lỗi:', err);
+          alert('Có lỗi xảy ra, vui lòng thử lại!');
+        });
+      });
+    }
+
+    function editCustomer(index) {
+      var customer = customersData[index];
+      if (user.role !== 'Nhân viên' || customer.rowData[1] === user.username) {
+        document.getElementById('employeeName').value = customer.rowData[1] || '';
+        document.getElementById('customerName').value = customer.rowData[2] || '';
+        document.getElementById('phone').value = customer.rowData[3] || '';
+        document.getElementById('province').value = customer.rowData[4] || '';
+        document.getElementById('district').value = customer.rowData[5] || '';
+        document.getElementById('city').value = customer.rowData[6] || '';
+        document.getElementById('carType').value = customer.rowData[7] || '';
+        document.getElementById('version').value = customer.rowData[8] || '';
+        document.getElementById('color').value = customer.rowData[9] || '';
+        document.getElementById('channel').value = customer.rowData[10] || '';
+        document.getElementById('source').value = customer.rowData[11] || '';
+        document.getElementById('customerType').value = customer.rowData[12] || '';
+        document.getElementById('testDrive').value = customer.rowData[13] || '';
+        document.getElementById('signDate').value = customer.rowData[14] || '';
+        document.getElementById('invoiceDate').value = customer.rowData[15] || '';
+        document.getElementById('agencyDrop').value = customer.rowData[16] || '';
+        document.getElementById('otherBrandDrop').value = customer.rowData[17] || '';
+        document.getElementById('note').value = customer.rowData[18] || '';
+
+        deleteCustomer(index, false);
+      } else {
+        alert('Bạn không có quyền chỉnh sửa khách hàng này!');
+      }
+    }
+
+    function deleteCustomer(index, showAlert = true) {
+      var customer = customersData[index];
+      if (user.role !== 'Nhân viên' || customer.rowData[1] === user.username) {
+        gapi.client.sheets.spreadsheets.values.get({
+          spreadsheetId: customer.spreadsheetId,
+          range: 'data!A2:S'
+        }).then(response => {
+          var data = response.result.values || [];
+          var newData = data.filter((_, i) => i !== index);
+
+          gapi.client.sheets.spreadsheets.values.update({
+            spreadsheetId: customer.spreadsheetId,
+            range: 'data!A2:S',
+            valueInputOption: 'USER_ENTERED',
+            resource: {
+              values: newData
+            }
+          }).then(() => {
+            loadCustomers();
+            if (showAlert) alert('Xóa khách hàng thành công!');
+          });
+        }).catch(err => {
+          console.error('Lỗi khi xóa khách hàng:', err);
+          alert('Có lỗi xảy ra khi xóa khách hàng!');
+        });
+      } else {
+        alert('Bạn không có quyền xóa khách hàng này!');
+      }
+    }
+
+    function sortTable(columnIndex) {
+      sortDirection *= -1;
+      customersData.sort((a, b) => {
+        var aValue = a.rowData[columnIndex] || '';
+        var bValue = b.rowData[columnIndex] || '';
+        if (columnIndex === 0 || columnIndex === 14 || columnIndex === 15) {
+          aValue = aValue ? new Date(aValue.split('/').reverse().join('-')) : new Date(0);
+          bValue = bValue ? new Date(bValue.split('/').reverse().join('-')) : new Date(0);
+        }
+        return sortDirection * (aValue > bValue ? 1 : -1);
+      });
+      displayCustomers();
+    }
+
+    initGapi();
+  </script>
+</body>
+</html>

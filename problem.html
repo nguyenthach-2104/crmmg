@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>CRM Bán Xe Ô Tô - Quản lý vấn đề</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  <script src="https://apis.google.com/js/api.js"></script>
+</head>
+<body>
+  <div class="container mt-3">
+    <h1 class="text-center">Quản lý vấn đề</h1>
+    <button class="btn btn-secondary mb-3" onclick="window.location.href='dashboard.html'">Quay lại Dashboard</button>
+
+    <!-- Form báo cáo vấn đề -->
+    <h3>Báo cáo vấn đề mới</h3>
+    <form id="problemForm">
+      <div class="row">
+        <div class="col-md-6 mb-3">
+          <label for="problemDescription" class="form-label">Vấn đề</label>
+          <textarea class="form-control" id="problemDescription" rows="3" required></textarea>
+        </div>
+        <div class="col-md-6 mb-3">
+          <label for="solution" class="form-label">Phương án giải quyết</label>
+          <textarea class="form-control" id="solution" rows="3"></textarea>
+        </div>
+        <div class="col-md-6 mb-3">
+          <label for="status" class="form-label">Trạng thái</label>
+          <select class="form-select" id="status">
+            <option value="Mới">Mới</option>
+            <option value="Đang xử lý">Đang xử lý</option>
+            <option value="Đã giải quyết">Đã giải quyết</option>
+          </select>
+        </div>
+      </div>
+      <button type="button" class="btn btn-primary" onclick="addProblem()">Báo cáo vấn đề</button>
+    </form>
+
+    <!-- Bảng danh sách vấn đề -->
+    <h3 class="mt-4">Danh sách vấn đề</h3>
+    <table class="table table-bordered">
+      <thead>
+        <tr>
+          <th>Thời gian</th>
+          <th>User</th>
+          <th>Vấn đề</th>
+          <th>Phương án giải quyết</th>
+          <th>Trạng thái</th>
+          <th>Phòng KD</th>
+          <th>Thao tác</th>
+        </tr>
+      </thead>
+      <tbody id="problemTable">
+      </tbody>
+    </table>
+  </div>
+
+  <script>
+    let user;
+    let problemsData = [];
+
+    function initGapi() {
+      gapi.load('client', () => {
+        gapi.client.init({
+          apiKey: 'AIzaSyBE5nHSYaasu6RLrdE5QqnDQaD4Q1XAp9I',
+          discoveryDocs: ['https://sheets.googleapis.com/$discovery/rest?version=v4'],
+        }).then(() => {
+          loadProblems();
+        }).catch(err => {
+          console.error('Lỗi khởi tạo gapi.client:', err);
+          alert('Không thể khởi tạo API. Vui lòng thử lại sau.');
+        });
+      });
+    }
+
+    function loadProblems() {
+      user = JSON.parse(localStorage.getItem('user'));
+      if (!user) {
+        window.location.href = 'index.html';
+        return;
+      }
+
+      gapi.client.sheets.spreadsheets.values.get({
+        spreadsheetId: '1C4J3KBvE-wxSFBJywbV0W5IkFaXnI-aArNazLr5napE',
+        range: 'Problem!A2:F',
+      }).then(response => {
+        var data = response.result.values || [];
+        problemsData = data.map((row, index) => ({
+          rowData: row,
+          index: index + 2 // Hàng bắt đầu từ A2
+        }));
+
+        // Lọc dữ liệu theo phân quyền
+        if (user.role === 'Quản lý cấp 1') {
+          // Quản lý cấp 1 thấy tất cả
+        } else if (user.role === 'Quản lý cấp 2') {
+          problemsData = problemsData.filter(problem => problem.rowData[5] === user.pkd);
+        } else {
+          problemsData = problemsData.filter(problem => problem.rowData[1] === user.username);
+        }
+
+        displayProblems();
+      }).catch(err => {
+        console.error('Lỗi khi tải danh sách vấn đề:', err);
+        alert('Có lỗi xảy ra khi tải danh sách vấn đề!');
+      });
+    }
+
+    function displayProblems() {
+      var tbody = document.getElementById('problemTable');
+      tbody.innerHTML = '';
+      problemsData.forEach((problem, index) => {
+        var row = problem.rowData;
+        var tr = document.createElement('tr');
+        tr.innerHTML = `
+          <td>${new Date(row[0]).toLocaleString('vi-VN')}</td>
+          <td>${row[1] || ''}</td>
+          <td>${row[2] || ''}</td>
+          <td>${row[3] || ''}</td>
+          <td>${row[4] || ''}</td>
+          <td>${row[5] || ''}</td>
+          <td>
+            <button class="btn btn-warning btn-sm" onclick="editProblem(${index})">Sửa</button>
+            <button class="btn btn-danger btn-sm" onclick="deleteProblem(${index})">Xóa</button>
+          </td>
+        `;
+        tbody.appendChild(tr);
+      });
+    }
+
+    function addProblem() {
+      var problemDescription = document.getElementById('problemDescription').value;
+      var solution = document.getElementById('solution').value;
+      var status = document.getElementById('status').value;
+
+      var timestamp = new Date();
+      var rowData = [
+        timestamp.toISOString(),
+        user.username,
+        problemDescription,
+        solution,
+        status,
+        user.pkd || ''
+      ];
+
+      gapi.client.sheets.spreadsheets.values.append({
+        spreadsheetId: '1C4J3KBvE-wxSFBJywbV0W5IkFaXnI-aArNazLr5napE',
+        range: 'Problem!A:F',
+        valueInputOption: 'USER_ENTERED',
+        resource: {
+          values: [rowData]
+        }
+      }).then(() => {
+        loadProblems();
+        document.getElementById('problemForm').reset();
+        alert('Báo cáo vấn đề thành công!');
+      }).catch(err => {
+        console.error('Lỗi khi báo cáo vấn đề:', err);
+        alert('Có lỗi xảy ra, vui lòng thử lại!');
+      });
+    }
+
+    function editProblem(index) {
+      var problem = problemsData[index];
+      if (user.role !== 'Nhân viên' || problem.rowData[1] === user.username) {
+        document.getElementById('problemDescription').value = problem.rowData[2] || '';
+        document.getElementById('solution').value = problem.rowData[3] || '';
+        document.getElementById('status').value = problem.rowData[4] || 'Mới';
+
+        deleteProblem(index, false);
+      } else {
+        alert('Bạn không có quyền chỉnh sửa vấn đề này!');
+      }
+    }
+
+    function deleteProblem(index, showAlert = true) {
+      var problem = problemsData[index];
+      if (user.role !== 'Nhân viên' || problem.rowData[1] === user.username) {
+        gapi.client.sheets.spreadsheets.values.get({
+          spreadsheetId: '1C4J3KBvE-wxSFBJywbV0W5IkFaXnI-aArNazLr5napE',
+          range: 'Problem!A2:F'
+        }).then(response => {
+          var data = response.result.values || [];
+          var newData = data.filter((_, i) => i !== (problem.index - 2));
+
+          gapi.client.sheets.spreadsheets.values.update({
+            spreadsheetId: '1C4J3KBvE-wxSFBJywbV0W5IkFaXnI-aArNazLr5napE',
+            range: 'Problem!A2:F',
+            valueInputOption: 'USER_ENTERED',
+            resource: {
+              values: newData
+            }
+          }).then(() => {
+            loadProblems();
+            if (showAlert) alert('Xóa vấn đề thành công!');
+          });
+        }).catch(err => {
+          console.error('Lỗi khi xóa vấn đề:', err);
+          alert('Có lỗi xảy ra khi xóa vấn đề!');
+        });
+      } else {
+        alert('Bạn không có quyền xóa vấn đề này!');
+      }
+    }
+
+    initGapi();
+  </script>
+</body>
+</html>
