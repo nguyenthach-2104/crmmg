@@ -21,31 +21,67 @@
             <label for="password" class="form-label">Mật khẩu</label>
             <input type="password" class="form-control" id="password" required>
           </div>
-          <button type="button" class="btn btn-primary w-100" onclick="login()">Đăng nhập</button>
+          <button type="button" class="btn btn-primary w-100" onclick="attemptLogin()">Đăng nhập</button>
         </form>
       </div>
     </div>
   </div>
 
   <script>
+    let gapiReady = false;
+    let retryCount = 0;
+    const maxRetries = 5;
+    const retryDelay = 2000; // 2 giây
+
     function initGapi() {
       gapi.load('client', () => {
         gapi.client.init({
-          apiKey: 'YOUR_API_KEY',
+          apiKey: 'AIzaSyBE5nHSYaasu6RLrdE5QqnDQaD4Q1XAp9I',
           discoveryDocs: ['https://sheets.googleapis.com/$discovery/rest?version=v4'],
+        }).then(() => {
+          gapiReady = true;
+          console.log('gapi.client đã sẵn sàng');
+        }).catch(err => {
+          console.error('Lỗi khởi tạo gapi.client:', err);
+          alert('Không thể khởi tạo API. Vui lòng thử lại sau.');
         });
       });
     }
 
-    function login() {
+    function attemptLogin() {
+      if (!gapiReady) {
+        if (retryCount < maxRetries) {
+          retryCount++;
+          console.log(`API chưa sẵn sàng, thử lại lần ${retryCount}/${maxRetries} sau ${retryDelay/1000} giây...`);
+          setTimeout(attemptLogin, retryDelay);
+        } else {
+          alert('Không thể khởi tạo API sau nhiều lần thử. Vui lòng tải lại trang và thử lại.');
+        }
+        return;
+      }
+
       var usernameInput = document.getElementById('username').value;
       var password = document.getElementById('password').value;
+
+      if (!usernameInput || !password) {
+        alert('Vui lòng nhập đầy đủ thông tin đăng nhập!');
+        return;
+      }
+
+      login(usernameInput, password);
+    }
+
+    function login(usernameInput, password) {
+      if (!gapi.client.sheets) {
+        alert('API chưa sẵn sàng, vui lòng thử lại sau.');
+        return;
+      }
 
       gapi.client.sheets.spreadsheets.values.get({
         spreadsheetId: '1C4J3KBvE-wxSFBJywbV0W5IkFaXnI-aArNazLr5napE',
         range: 'User!A2:G',
       }).then(response => {
-        var users = response.result.values;
+        var users = response.result.values || [];
         var found = users.find(user => 
           (user[2] === usernameInput || user[4] === usernameInput) && user[3] === password
         );
@@ -61,11 +97,12 @@
           alert('Sai thông tin đăng nhập!');
         }
       }).catch(err => {
-        console.error('Lỗi:', err);
-        alert('Có lỗi xảy ra, vui lòng thử lại!');
+        console.error('Lỗi khi gọi API:', err);
+        alert('Có lỗi xảy ra, vui lòng thử lại! Chi tiết lỗi: ' + err.message);
       });
     }
 
+    // Khởi tạo gapi ngay khi trang tải
     initGapi();
   </script>
 </body>
